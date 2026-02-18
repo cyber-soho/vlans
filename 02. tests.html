@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLANs & Security Study Module</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F5F5F4; color: #1C1917; }
+        .mono { font-family: 'Fira Code', monospace; }
+        
+        /* Flashcard Flip Animation */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        
+        /* Transition utility */
+        .flip-card-inner {
+            transition: transform 0.6s;
+            transform-origin: center center;
+        }
+        
+        /* Hide scrollbar for quiz if needed */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Header & Tabs -->
+    <div class="bg-white border-b border-stone-200 shadow-sm flex-shrink-0 z-10">
+        <div class="max-w-4xl mx-auto px-4 pt-6">
+            <h1 class="text-2xl font-bold text-stone-800 mb-2">VLANs & Security <span class="text-orange-600 font-normal text-lg">| Study Module</span></h1>
+            <div class="flex space-x-1 mt-4">
+                <button id="tab-flashcards-btn" onclick="switchTab('flashcards')" class="px-6 py-3 font-medium text-sm rounded-t-lg border-b-2 transition-colors border-orange-500 text-orange-600 bg-orange-50">
+                    📚 Flashcards (25)
+                </button>
+                <button id="tab-quiz-btn" onclick="switchTab('quiz')" class="px-6 py-3 font-medium text-sm rounded-t-lg border-b-2 border-transparent text-stone-500 hover:text-stone-700 hover:bg-stone-50 transition-colors">
+                    📝 Quiz (10)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow bg-stone-100 relative overflow-hidden">
+        
+        <!-- TAB 1: FLASHCARDS -->
+        <div id="tab-flashcards" class="absolute inset-0 flex flex-col items-center justify-center p-4 transition-opacity duration-300">
+            
+            <!-- Progress -->
+            <div class="mb-4 text-stone-500 font-medium tracking-wide">
+                Card <span id="card-current">1</span> of <span id="card-total">25</span>
+            </div>
+
+            <!-- Card Container -->
+            <div class="perspective-1000 w-full max-w-2xl h-80 cursor-pointer group" onclick="flipCard()">
+                <div id="card-inner" class="flip-card-inner relative w-full h-full text-center shadow-xl rounded-2xl transform-style-3d">
+                    
+                    <!-- Front -->
+                    <div class="absolute w-full h-full backface-hidden bg-white rounded-2xl border border-stone-200 flex flex-col items-center justify-center p-8">
+                        <span class="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">Term / Question</span>
+                        <h2 id="card-front-text" class="text-2xl md:text-3xl font-bold text-stone-800">
+                            <!-- JS Populated -->
+                        </h2>
+                        <div class="mt-8 text-xs text-stone-400 font-medium flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span>👆 Click to Flip</span>
+                        </div>
+                    </div>
+
+                    <!-- Back -->
+                    <div class="absolute w-full h-full backface-hidden bg-stone-800 text-white rounded-2xl border border-stone-700 rotate-y-180 flex flex-col items-center justify-center p-8">
+                        <span class="text-xs font-bold text-orange-400 uppercase tracking-widest mb-4">Answer / Definition</span>
+                        <p id="card-back-text" class="text-xl md:text-2xl leading-relaxed">
+                            <!-- JS Populated -->
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center gap-4 mt-8">
+                <button onclick="prevCard()" class="p-3 rounded-full bg-white border border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-orange-600 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                
+                <button onclick="flipCard()" class="px-8 py-2 bg-stone-800 text-white rounded-full font-medium shadow-md hover:bg-stone-700 hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-stone-800">
+                    Flip Card (Space)
+                </button>
+                
+                <button onclick="nextCard()" class="p-3 rounded-full bg-white border border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-orange-600 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+            </div>
+            
+            <div class="mt-4 text-xs text-stone-400">
+                Tip: Use <kbd class="px-1 py-0.5 border rounded bg-stone-100 font-mono">←</kbd> <kbd class="px-1 py-0.5 border rounded bg-stone-100 font-mono">→</kbd> arrows to navigate
+            </div>
+        </div>
+
+        <!-- TAB 2: QUIZ -->
+        <div id="tab-quiz" class="absolute inset-0 overflow-y-auto p-4 hidden bg-stone-100">
+            <div class="max-w-3xl mx-auto pb-12">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-stone-700">Practice Quiz</h2>
+                    <button onclick="resetQuiz()" class="text-sm text-orange-600 hover:underline font-medium">Reset Quiz</button>
+                </div>
+                
+                <div id="quiz-container" class="space-y-6">
+                    <!-- Questions generated by JS -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- DATA & LOGIC -->
+    <script>
+        // --- DATA ---
+        const flashcardsData = [
+            { front: "VLAN stands for...", back: "Virtual Local Area Network" },
+            { front: "Definition of a 'Flat Network'", back: "A network where all devices are connected in a single broadcast domain without logical segmentation." },
+            { front: "Three main problems of a Flat Network", back: "1. Broadcast storms eat bandwidth.\n2. Single point of failure isolates groups.\n3. Zero logical separation (security risk)." },
+            { front: "Broadcast Domain behavior in a VLAN", back: "A broadcast frame sent in one VLAN is only flooded to ports within that specific VLAN." },
+            { front: "Device required for Inter-VLAN communication", back: "A Router (or Layer 3 switch)" },
+            { front: "The Hotel Analogy for VLANs", back: "Guests share the same building (switch) but keycards limit them to specific floors (VLANs)." },
+            { front: "Lateral Movement", back: "A phase of a cyberattack where an attacker moves from a compromised device to others; VLANs limit this." },
+            { front: "VLANs help meet this compliance standard", back: "PCI-DSS (Payment Card Industry Data Security Standard)" },
+            { front: "VLAN Hopping", back: "An attack technique (like double-tagging) used to bypass VLAN isolation." },
+            { front: "802.1Q", back: "The IEEE standard protocol for VLAN tagging on Ethernet frames." },
+            { front: "Why 802.1Q tags are necessary", back: "Standard Ethernet frames have no VLAN field, so a tag is needed for switches to identify traffic on trunk links." },
+            { front: "Location of the 802.1Q tag in a frame", back: "Inserted between the Source MAC address and the EtherType field." },
+            { front: "Size of an 802.1Q tag", back: "4 bytes" },
+            { front: "TPID (Tag Protocol Identifier) value", back: "0x8100" },
+            { front: "VLAN ID (VID) field size", back: "12 bits" },
+            { front: "Number of usable VLANs", back: "4,094" },
+            { front: "Native VLAN behavior on a trunk", back: "Traffic for the Native VLAN is sent across the trunk without a tag." },
+            { front: "Default Native VLAN on Cisco switches", back: "VLAN 1" },
+            { front: "Security best practice for Native VLANs", back: "Change it to an unused VLAN ID to prevent hopping attacks." },
+            { front: "Command to create VLAN 50", back: "vlan 50" },
+            { front: "Command to name a VLAN", back: "name [VLAN_NAME]" },
+            { front: "Command to assign a port to VLAN 50", back: "switchport access vlan 50" },
+            { front: "Command to configure a port as a trunk", back: "switchport mode trunk" },
+            { front: "Command to set trunk encapsulation to 802.1Q", back: "switchport trunk encapsulation dot1q" },
+            { front: "Command to verify VLAN assignments", back: "show vlan brief" }
+        ];
+
+        const quizData = [
+            {
+                question: "In a flat Layer 2 network with multiple switches daisy-chained together, what is the immediate consequence of a middle switch failing?",
+                options: [
+                    { text: "The entire network automatically reroutes traffic to the router.", isCorrect: false, rationale: "In a linear daisy-chain topology without redundancy protocols like STP, traffic cannot automatically reroute." },
+                    { text: "Only the devices directly connected to the failed switch lose connectivity.", isCorrect: false, rationale: "While those devices lose connectivity, the failure also breaks the link for any switches further down the chain." },
+                    { text: "All departments or switches connected 'behind' the failed switch are completely cut off.", isCorrect: true, rationale: "In a daisy-chained flat network, a single switch failure creates a partition, isolating all downstream devices." },
+                    { text: "Broadcast storms increase significantly due to the failure.", isCorrect: false, rationale: "A switch failure stops traffic flow rather than causing a loop; broadcast storms are typically caused by loops." }
+                ],
+                hint: "Think about the topology described as a 'chain' and what happens to the links at the end if a middle link breaks."
+            },
+            {
+                question: "How does implementing a VLAN specifically address the issue of broadcast storms?",
+                options: [
+                    { text: "It blocks all broadcast traffic from entering the network.", isCorrect: false, rationale: "Broadcasts are necessary for protocols like ARP and DHCP; blocking them entirely would break connectivity." },
+                    { text: "It directs all broadcast traffic directly to the router for processing.", isCorrect: false, rationale: "Broadcasts are Layer 2 traffic intended for local peers, not specifically for the router to process centrally." },
+                    { text: "It restricts the broadcast domain to only the ports assigned to that specific VLAN.", isCorrect: true, rationale: "A VLAN logically segments the network so that a broadcast frame in VLAN 10 is only flooded to other ports in VLAN 10." },
+                    { text: "It converts broadcast frames into unicast frames automatically.", isCorrect: false, rationale: "VLANs segregate traffic but do not change the fundamental transmission method of the frames." }
+                ],
+                hint: "Recall the 'Hotel Analogy' where guests in one zone cannot hear noise from another zone."
+            },
+            {
+                question: "From a cybersecurity perspective, what is the primary benefit of placing the Sales department in a separate VLAN from the Server room?",
+                options: [
+                    { text: "It limits lateral movement by trapping an attacker in the compromised VLAN.", isCorrect: true, rationale: "The VLAN boundary prevents the attacker from directly accessing the Servers at Layer 2, forcing them through a firewall." },
+                    { text: "It encrypts all traffic moving between Sales and Servers.", isCorrect: false, rationale: "VLANs provide logical separation but do not inherently encrypt the traffic flowing within or between them." },
+                    { text: "It prevents the Sales team from accessing the Internet.", isCorrect: false, rationale: "VLANs segregate internal traffic, but access to the Internet is determined by routing and firewall rules." },
+                    { text: "It automatically detects malware on the Sales computers.", isCorrect: false, rationale: "VLANs are a network segmentation tool, not an intrusion detection system." }
+                ],
+                hint: "Consider the concept of 'Attack Surface Reduction' and what prevents a hacker from easily jumping between departments."
+            },
+            {
+                question: "When an Ethernet frame traverses a trunk link between two switches, where is the 802.1Q tag inserted?",
+                options: [
+                    { text: "Before the Destination MAC address.", isCorrect: false, rationale: "Inserting data before the header would prevent the switch from reading the destination address immediately." },
+                    { text: "Between the Source MAC address and the EtherType field.", isCorrect: true, rationale: "The 4-byte 802.1Q tag is inserted after the Source MAC and before the EtherType to identify the VLAN." },
+                    { text: "At the very end of the frame, after the FCS.", isCorrect: false, rationale: "Data after the Frame Check Sequence (FCS) would be discarded or ignored as noise." },
+                    { text: "Inside the data payload section.", isCorrect: false, rationale: "Modifying the payload would corrupt the actual data being sent; the tag must be part of the header." }
+                ],
+                hint: "Visualise the standard Ethernet frame header; the tag wedges itself in the middle to announce VLAN identity."
+            },
+            {
+                question: "Which specific field within the 802.1Q tag is used to identify the VLAN number?",
+                options: [
+                    { text: "The 12-bit VLAN ID (VID).", isCorrect: true, rationale: "The VID is a 12-bit field capable of addressing 4,096 VLANs, which is the core identifier." },
+                    { text: "The 16-bit TPID (Tag Protocol Identifier).", isCorrect: false, rationale: "The TPID (0x8100) identifies the frame as being 'tagged' but does not specify *which* VLAN it belongs to." },
+                    { text: "The 3-bit Priority (PCP).", isCorrect: false, rationale: "The PCP field is used for Quality of Service (QoS) prioritization, not for identification." },
+                    { text: "The 1-bit DEI (Drop Eligible Indicator).", isCorrect: false, rationale: "The DEI bit indicates if a frame can be dropped during congestion." }
+                ],
+                hint: "It is the largest field in the tag, providing enough bits to number over four thousand different networks."
+            },
+            {
+                question: "What is the behavior of traffic belonging to the 'Native VLAN' on an 802.1Q trunk link?",
+                options: [
+                    { text: "It is tagged with VLAN ID 1 by default.", isCorrect: false, rationale: "Native VLAN traffic is specifically characterized by *not* having a tag." },
+                    { text: "It is sent across the trunk without an 802.1Q tag.", isCorrect: true, rationale: "The Native VLAN is designed to carry untagged traffic across a trunk link for backward compatibility." },
+                    { text: "It is blocked from crossing the trunk link entirely.", isCorrect: false, rationale: "Native VLAN traffic can cross the trunk; blocking it would disrupt management protocols." },
+                    { text: "It is given higher priority than all other VLANs.", isCorrect: false, rationale: "Priority is determined by QoS settings, not inherently by being the native VLAN." }
+                ],
+                hint: "This concept is a common vector for VLAN hopping attacks because the switch treats this specific traffic differently."
+            },
+            {
+                question: "Why is 'VLAN Hopping' a security concern associated with the Native VLAN?",
+                options: [
+                    { text: "It allows an attacker to physically unplug cables.", isCorrect: false, rationale: "Physical tampering is a physical security issue, not a logic protocol vulnerability." },
+                    { text: "It allows an attacker to bypass Layer 2 isolation using double-tagging.", isCorrect: true, rationale: "If on the native VLAN, an attacker can add a second tag that the first switch strips off, forwarding the packet into a different VLAN." },
+                    { text: "It causes the switch to run out of VLAN IDs.", isCorrect: false, rationale: "This describes resource exhaustion, not the act of 'hopping'." },
+                    { text: "It encrypts the VLAN ID so the router cannot read it.", isCorrect: false, rationale: "This issue relates to traffic manipulation, not encryption." }
+                ],
+                hint: "The vulnerability relies on how switches handle frames that arrive untagged versus those with multiple tags."
+            },
+            {
+                question: "In the context of the Cisco IOS CLI, which command assigns a specific port to a VLAN?",
+                options: [
+                    { text: "switchport mode trunk", isCorrect: false, rationale: "This configures the port to carry *all* VLANs as a trunk, rather than assigning it to a single access VLAN." },
+                    { text: "vlan 50", isCorrect: false, rationale: "This command creates the VLAN in the global database but does not assign any specific interface to it." },
+                    { text: "switchport access vlan [ID]", isCorrect: true, rationale: "After setting the mode to access, this command explicitly tells the switch that traffic on this port belongs to the specified VLAN ID." },
+                    { text: "encapsulation dot1q", isCorrect: false, rationale: "This command prepares an interface for trunking tagging, not for assigning an end-device port." }
+                ],
+                hint: "You are configuring an 'access' port for a computer, so the command must specify which VLAN it accesses."
+            },
+            {
+                question: "Can a computer in VLAN 10 communicate with a computer in VLAN 20 if they are connected to the same Layer 2 switch without a router?",
+                options: [
+                    { text: "Yes, because they are on the same physical switch.", isCorrect: false, rationale: "Physical proximity does not override logical separation." },
+                    { text: "No, because VLANs are separate broadcast domains requiring a Layer 3 device to route between them.", isCorrect: true, rationale: "VLANs divide the switch into isolated networks. Traffic cannot cross from one ID to another without a router." },
+                    { text: "Yes, but only if the computers have the same IP subnet.", isCorrect: false, rationale: "Even with the same subnet, Layer 2 isolation prevents frames from reaching the destination MAC in the other VLAN." },
+                    { text: "No, unless the switch is configured with a crossover cable.", isCorrect: false, rationale: "Cabling types do not resolve the logical separation enforced by the VLAN tag." }
+                ],
+                hint: "Recall the exit question: VLANs isolate at Layer 2, so what is needed to bridge that gap?"
+            },
+            {
+                question: "How do VLANs specifically assist an organization in meeting PCI-DSS compliance standards?",
+                options: [
+                    { text: "By ensuring that credit card data is segmented from the rest of the corporate network.", isCorrect: true, rationale: "PCI-DSS requires the Cardholder Data Environment to be isolated so a breach in a less secure area cannot compromise financial data." },
+                    { text: "By automatically encrypting credit card numbers in the database.", isCorrect: false, rationale: "VLANs control network flow and access, they do not perform application-level data encryption." },
+                    { text: "By preventing the use of wireless networks entirely.", isCorrect: false, rationale: "PCI-DSS allows wireless networks but requires them to be strictly controlled and segmented." },
+                    { text: "By increasing the speed of credit card transactions.", isCorrect: false, rationale: "Compliance standards focus on security and data protection, not transaction speed." }
+                ],
+                hint: "Think about the 'scope' of an audit—keeping sensitive data separate keeps the rest of the network out of the audit scope."
+            }
+        ];
+
+        // --- APP STATE ---
+        let currentIndex = 0;
+        let isFlipped = false;
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCard();
+            renderQuiz();
+            
+            // Keyboard Nav
+            document.addEventListener('keydown', (e) => {
+                const flashcardsTab = document.getElementById('tab-flashcards');
+                if (!flashcardsTab.classList.contains('hidden')) {
+                    if (e.key === 'ArrowRight') nextCard();
+                    if (e.key === 'ArrowLeft') prevCard();
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        // Prevent scroll on space
+                        if(e.key === ' ') e.preventDefault();
+                        flipCard();
+                    }
+                }
+            });
+        });
+
+        // --- TAB LOGIC ---
+        function switchTab(tabName) {
+            const flashDiv = document.getElementById('tab-flashcards');
+            const quizDiv = document.getElementById('tab-quiz');
+            const flashBtn = document.getElementById('tab-flashcards-btn');
+            const quizBtn = document.getElementById('tab-quiz-btn');
+
+            if (tabName === 'flashcards') {
+                flashDiv.classList.remove('hidden');
+                quizDiv.classList.add('hidden');
+                
+                // Style Active
+                flashBtn.className = "px-6 py-3 font-medium text-sm rounded-t-lg border-b-2 transition-colors border-orange-500 text-orange-600 bg-orange-50";
+                quizBtn.className = "px-6 py-3 font-medium text-sm rounded-t-lg border-b-2 border-transparent text-stone-500 hover:text-stone-700 hover:bg-stone-50 transition-colors";
+            } else {
+                flashDiv.classList.add('hidden');
+                quizDiv.classList.remove('hidden');
+
+                // Style Active
+                quizBtn.className = "px-6 py-3 font-medium text-sm rounded-t-lg border-b-2 transition-colors border-orange-500 text-orange-600 bg-orange-50";
+                flashBtn.className = "px-6 py-3 font-medium text-sm rounded-t-lg border-b-2 border-transparent text-stone-500 hover:text-stone-700 hover:bg-stone-50 transition-colors";
+            }
+        }
+
+        // --- FLASHCARD LOGIC ---
+        function renderCard() {
+            const card = flashcardsData[currentIndex];
+            const frontEl = document.getElementById('card-front-text');
+            const backEl = document.getElementById('card-back-text');
+            const cardInner = document.getElementById('card-inner');
+            
+            // Reset Flip State
+            isFlipped = false;
+            cardInner.classList.remove('rotate-y-180');
+
+            // Update Content (Delay slightly if needed for animation, but here instant is fine for render)
+            frontEl.textContent = card.front;
+            // Handle line breaks in back text
+            backEl.innerHTML = card.back.replace(/\n/g, '<br>');
+
+            // Update Counters
+            document.getElementById('card-current').textContent = currentIndex + 1;
+            document.getElementById('card-total').textContent = flashcardsData.length;
+        }
+
+        function flipCard() {
+            const cardInner = document.getElementById('card-inner');
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                cardInner.classList.add('rotate-y-180');
+            } else {
+                cardInner.classList.remove('rotate-y-180');
+            }
+        }
+
+        function nextCard() {
+            if (currentIndex < flashcardsData.length - 1) {
+                currentIndex++;
+                renderCard();
+            } else {
+                // Loop back to start?
+                currentIndex = 0;
+                renderCard();
+            }
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderCard();
+            } else {
+                // Loop to end
+                currentIndex = flashcardsData.length - 1;
+                renderCard();
+            }
+        }
+
+        // --- QUIZ LOGIC ---
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = ''; // Clear
+
+            quizData.forEach((q, index) => {
+                const qEl = document.createElement('div');
+                qEl.className = "bg-white p-6 rounded-xl shadow-sm border border-stone-200";
+                
+                // Shuffle options randomly
+                const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+                
+                let optionsHtml = '';
+                shuffledOptions.forEach((opt, optIndex) => {
+                    // We store the original index or properties in data attributes to check answer later
+                    // But simpler: pass data to the onClick function
+                    // Escape rationale for single quotes
+                    const rationaleSafe = opt.rationale.replace(/'/g, "&#39;");
+                    
+                    optionsHtml += `
+                        <button onclick="checkAnswer(this, ${opt.isCorrect}, '${rationaleSafe}')" 
+                                class="quiz-opt-btn w-full text-left p-3 rounded-lg border border-stone-200 hover:bg-stone-50 hover:border-stone-300 mb-2 transition-all flex items-start gap-3 group">
+                            <div class="mt-0.5 w-5 h-5 rounded-full border border-stone-300 flex-shrink-0 group-hover:border-orange-400 flex items-center justify-center">
+                                <div class="w-2.5 h-2.5 rounded-full bg-transparent group-hover:bg-orange-100 transition-colors"></div>
+                            </div>
+                            <span class="text-stone-700 text-sm leading-snug">${opt.text}</span>
+                        </button>
+                    `;
+                });
+
+                qEl.innerHTML = `
+                    <div class="flex items-start gap-3 mb-4">
+                        <span class="bg-stone-800 text-white text-xs font-bold px-2 py-1 rounded mt-0.5">Q${index + 1}</span>
+                        <h3 class="text-lg font-semibold text-stone-800 leading-snug">${q.question}</h3>
+                    </div>
+                    <div class="ml-0 md:ml-10">
+                        <div class="mb-4">${optionsHtml}</div>
+                        <!-- Feedback Container -->
+                        <div class="feedback hidden p-4 rounded-lg bg-stone-50 border text-sm animate-fade-in"></div>
+                        <!-- Hint -->
+                        <div class="mt-2 text-xs text-stone-400 italic">
+                            <span class="font-bold">Hint:</span> ${q.hint}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(qEl);
+            });
+        }
+
+        function checkAnswer(btn, isCorrect, rationale) {
+            const parentDiv = btn.parentElement;
+            const feedbackDiv = parentDiv.nextElementSibling;
+            
+            // Disable all buttons in this question
+            const allBtns = parentDiv.querySelectorAll('.quiz-opt-btn');
+            allBtns.forEach(b => {
+                b.disabled = true;
+                b.classList.add('opacity-50', 'cursor-not-allowed');
+            });
+
+            // Highlight chosen button
+            btn.classList.remove('opacity-50');
+            
+            if (isCorrect) {
+                btn.classList.add('bg-green-50', 'border-green-500', 'ring-1', 'ring-green-500');
+                btn.querySelector('div').classList.add('border-green-500');
+                btn.querySelector('div div').classList.add('bg-green-500');
+                
+                feedbackDiv.innerHTML = `<strong class="text-green-700">Correct!</strong> <span class="text-stone-700">${rationale}</span>`;
+                feedbackDiv.classList.remove('hidden', 'bg-red-50', 'border-red-200');
+                feedbackDiv.classList.add('bg-green-50', 'border-green-200');
+            } else {
+                btn.classList.add('bg-red-50', 'border-red-500', 'ring-1', 'ring-red-500');
+                btn.querySelector('div').classList.add('border-red-500');
+                btn.querySelector('div div').classList.add('bg-red-500');
+
+                feedbackDiv.innerHTML = `<strong class="text-red-700">Incorrect.</strong> <span class="text-stone-700">${rationale}</span>`;
+                feedbackDiv.classList.remove('hidden', 'bg-green-50', 'border-green-200');
+                feedbackDiv.classList.add('bg-red-50', 'border-red-200');
+            }
+        }
+
+        function resetQuiz() {
+            renderQuiz();
+        }
+
+    </script>
+</body>
+</html>
+
+
+

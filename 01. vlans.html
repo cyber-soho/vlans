@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLANs: Segmentation & Security | Interactive Lesson</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F5F5F4; color: #1C1917; }
+        .mono { font-family: 'Fira Code', monospace; }
+        .chart-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto; height: 300px; max-height: 400px; }
+        .term-cursor::after { content: '▋'; animation: blink 1s step-end infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .highlight-pulse { animation: pulse-red 0.5s ease-in-out; }
+        @keyframes pulse-red { 0% { transform: scale(1); } 50% { transform: scale(1.1); box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); } 100% { transform: scale(1); } }
+        .packet { transition: all 1s ease-in-out; }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals (Stone) with Functional Accents (Blue, Emerald, Orange) -->
+    <!-- Application Structure Plan: Linear interactive storytelling ("Scrollytelling" lite). 
+         1. The Problem: Interactive grid demonstrating broadcast storms in a flat network.
+         2. The Solution: Chart.js visualization of segmentation and the Hotel Analogy.
+         3. Security: Card-based grid explaining the security benefits.
+         4. Mechanics: Interactive Ethernet Frame builder to explain 802.1Q tagging.
+         5. Practice: A simulated CLI terminal to walk through configuration.
+         6. Recap: Summary dashboard.
+         Why: This structure moves from the "Why" (pain point) to the "What" (concept) to the "How" (technical implementation), mirroring the pedagogical flow of the source script. -->
+    <!-- Visualization & Content Choices: 
+         1. Flat vs VLAN Network: Custom HTML Grid + JS Animation. Goal: Visualizing broadcast domains.
+         2. Segmentation Ratio: Chart.js Doughnut Chart. Goal: Visualize the logical split of a physical resource.
+         3. Frame Structure: CSS Flexbox Bar. Goal: Show the 802.1Q insertion clearly without SVG.
+         4. CLI Demo: HTML/JS Text typing simulation. Goal: Low-friction exposure to syntax.
+         -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-stone-100 text-stone-800">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-stone-900 text-stone-100 shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="font-bold text-lg tracking-tight">NetSec<span class="text-orange-500">.Edu</span></div>
+            <div class="hidden md:flex space-x-6 text-sm font-medium">
+                <a href="#section-problem" class="hover:text-orange-400 transition">The Problem</a>
+                <a href="#section-solution" class="hover:text-orange-400 transition">What is a VLAN?</a>
+                <a href="#section-security" class="hover:text-orange-400 transition">Security</a>
+                <a href="#section-tagging" class="hover:text-orange-400 transition">802.1Q Tagging</a>
+                <a href="#section-lab" class="hover:text-orange-400 transition">Lab Demo</a>
+            </div>
+            <button id="mobile-menu-btn" class="md:hidden text-2xl">☰</button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-stone-800 p-4 absolute w-full">
+            <a href="#section-problem" class="block py-2 hover:text-orange-400">The Problem</a>
+            <a href="#section-solution" class="block py-2 hover:text-orange-400">What is a VLAN?</a>
+            <a href="#section-security" class="block py-2 hover:text-orange-400">Security</a>
+            <a href="#section-tagging" class="block py-2 hover:text-orange-400">802.1Q Tagging</a>
+            <a href="#section-lab" class="block py-2 hover:text-orange-400">Lab Demo</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="bg-white border-b border-stone-200 py-16 px-4 text-center">
+        <div class="max-w-3xl mx-auto">
+            <p class="text-orange-600 font-bold uppercase tracking-wider mb-2">Cybersecurity AEC Program</p>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-stone-900 mb-6">VLANs: Virtual Local Area Networks</h1>
+            <p class="text-xl text-stone-600 mb-8 leading-relaxed">
+                Why do we need them? How do they secure our networks? And what is "tagging"?
+            </p>
+            <a href="#section-problem" class="inline-block bg-stone-900 text-white px-8 py-3 rounded-full font-medium hover:bg-orange-600 transition shadow-lg">Start Learning</a>
+        </div>
+    </header>
+
+    <!-- SECTION 1: THE PROBLEM (Flat Network) -->
+    <section id="section-problem" class="py-16 px-4 bg-stone-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="mb-10 text-center max-w-2xl mx-auto">
+                <h2 class="text-3xl font-bold mb-4">1. The "Flat Network" Nightmare</h2>
+                <p class="text-stone-600">
+                    Imagine a company where everyone is on one giant switch chain. This is a "Flat Layer 2 Network."
+                    Interact with the simulation below to see why this is a security and performance disaster.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <!-- Interactive Visualization -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-stone-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-stone-700">Network Simulation (Flat)</h3>
+                        <div class="space-x-2">
+                            <button id="btn-broadcast" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded transition">Trigger Broadcast (ARP)</button>
+                            <button id="btn-failure" class="bg-stone-700 hover:bg-stone-800 text-white text-xs px-3 py-1 rounded transition">Simulate Switch Failure</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Network Nodes Grid -->
+                    <div id="network-grid" class="grid grid-cols-4 gap-4 mb-4 relative">
+                        <!-- Generated by JS -->
+                    </div>
+                    <div id="simulation-status" class="text-sm text-center text-stone-500 italic h-6">System Normal</div>
+                </div>
+
+                <!-- Context & Explanation -->
+                <div class="space-y-6">
+                    <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
+                        <h4 class="font-bold text-red-800 mb-1">Problem 1: Broadcast Storms</h4>
+                        <p class="text-sm text-red-700">When one device sends a broadcast (like an ARP request), <strong>everyone</strong> hears it. This eats up bandwidth and causes congestion.</p>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-500">
+                        <h4 class="font-bold text-orange-800 mb-1">Problem 2: Security & Sniffing</h4>
+                        <p class="text-sm text-orange-700">There is <strong>zero logical separation</strong>. A hacker in HR can easily sniff traffic from Engineering or Sales.</p>
+                    </div>
+                    <div class="bg-stone-200 p-4 rounded-lg border-l-4 border-stone-500">
+                        <h4 class="font-bold text-stone-800 mb-1">Problem 3: Single Point of Failure</h4>
+                        <p class="text-sm text-stone-700">If a middle switch dies, entire departments are cut off from the router.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: THE SOLUTION (VLANs) -->
+    <section id="section-solution" class="py-16 px-4 bg-white border-t border-stone-200">
+        <div class="max-w-5xl mx-auto">
+            <div class="mb-10 text-center max-w-2xl mx-auto">
+                <h2 class="text-3xl font-bold mb-4">2. The Solution: VLANs</h2>
+                <p class="text-stone-600">
+                    VLAN (Virtual Local Area Network) logically carves one physical switch into multiple virtual switches.
+                    Think of it like a hotel: everyone is in the same building, but keycards limit access to specific floors.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12">
+                <!-- Chart.js Visualization -->
+                <div>
+                    <div class="bg-stone-50 p-6 rounded-xl border border-stone-200 h-full flex flex-col">
+                        <h3 class="font-bold text-stone-700 mb-2 text-center">Logical Segmentation</h3>
+                        <p class="text-xs text-stone-500 text-center mb-6">How a single physical resource is divided</p>
+                        
+                        <div class="chart-container flex-grow">
+                            <canvas id="vlanChart"></canvas>
+                        </div>
+                        
+                        <div class="mt-6 text-center">
+                            <button id="toggle-vlan-view" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition">Apply VLAN Segmentation</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Content & Hotel Analogy -->
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-3">Key Concepts</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <span class="text-green-500 mr-2">✓</span>
+                                <span class="text-stone-700"><strong>Broadcast Domain:</strong> Each VLAN is its own domain. Traffic in VLAN 10 stays in VLAN 10.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-500 mr-2">✓</span>
+                                <span class="text-stone-700"><strong>Location Independent:</strong> An engineer on Floor 1 and Floor 3 can be on the same VLAN (Virtual Switch).</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-500 mr-2">✓</span>
+                                <span class="text-stone-700"><strong>Router Required:</strong> To talk between VLANs (Inter-VLAN routing), you need a Layer 3 device. By default, they are isolated.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                        <h3 class="font-bold text-blue-900 mb-2">🏨 The Hotel Analogy</h3>
+                        <div class="space-y-2 text-sm text-blue-800">
+                            <div class="flex items-center p-2 bg-white rounded border border-blue-200">
+                                <div class="w-8 h-8 bg-blue-500 text-white flex items-center justify-center rounded-full mr-3 font-bold">R</div>
+                                <div><strong>Research (VLAN 10):</strong> Floors 7-10 (VIP Zone)</div>
+                            </div>
+                            <div class="flex items-center p-2 bg-white rounded border border-blue-200">
+                                <div class="w-8 h-8 bg-green-500 text-white flex items-center justify-center rounded-full mr-3 font-bold">E</div>
+                                <div><strong>Engineering (VLAN 20):</strong> Floors 4-6 (Family Zone)</div>
+                            </div>
+                            <div class="flex items-center p-2 bg-white rounded border border-blue-200">
+                                <div class="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full mr-3 font-bold">S</div>
+                                <div><strong>Sales (VLAN 30):</strong> Floors 1-3 (Business Zone)</div>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-xs text-blue-600 italic">They share the elevators (Trunk Links), but can't enter each other's rooms.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: CYBERSECURITY CONTEXT -->
+    <section id="section-security" class="py-16 px-4 bg-stone-900 text-stone-100">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <span class="bg-orange-600 text-white text-xs font-bold px-2 py-1 rounded uppercase">Why this matters</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2">VLANs as a Security Control</h2>
+                <p class="text-stone-400 mt-4 max-w-2xl mx-auto">In a cybersecurity program, we don't just build networks; we defend them. VLANs are a foundational defense layer.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="bg-stone-800 p-6 rounded-xl border border-stone-700 hover:border-orange-500 transition duration-300">
+                    <div class="text-4xl mb-4">🛡️</div>
+                    <h3 class="text-xl font-bold mb-3 text-white">Attack Surface Reduction</h3>
+                    <p class="text-stone-400 text-sm leading-relaxed">
+                        If an attacker compromises a PC in Sales (VLAN 30), they are trapped there. They cannot laterally move to Servers (VLAN 10) without passing through a firewall/router.
+                    </p>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-stone-800 p-6 rounded-xl border border-stone-700 hover:border-orange-500 transition duration-300">
+                    <div class="text-4xl mb-4">🚧</div>
+                    <h3 class="text-xl font-bold mb-3 text-white">Access Control</h3>
+                    <p class="text-stone-400 text-sm leading-relaxed">
+                        Combine VLANs with ACLs (Access Control Lists). 
+                        <br><br>
+                        <em>Example:</em> Guest Wi-Fi VLAN can access the Internet (Port 80/443) but has <strong>DENY ALL</strong> to internal file servers.
+                    </p>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-stone-800 p-6 rounded-xl border border-stone-700 hover:border-orange-500 transition duration-300">
+                    <div class="text-4xl mb-4">📜</div>
+                    <h3 class="text-xl font-bold mb-3 text-white">Compliance (PCI-DSS)</h3>
+                    <p class="text-stone-400 text-sm leading-relaxed">
+                        Standards like PCI-DSS <strong>require</strong> isolation of cardholder data environments. VLANs are the standard way to achieve this segmentation without buying separate physical hardware.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-12 bg-stone-800 p-4 rounded border border-red-900 flex items-start gap-4">
+                <div class="text-2xl">⚠️</div>
+                <div>
+                    <h4 class="font-bold text-red-400">Security Warning: VLAN Hopping</h4>
+                    <p class="text-sm text-stone-400 mt-1">
+                        VLANs are Layer 2. If switches aren't hardened (e.g., changing the Native VLAN), attackers can use techniques like <strong>Double Tagging</strong> to hop across boundaries. Never rely on VLANs alone—Layer 3 Firewalls are essential.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: 802.1Q TAGGING -->
+    <section id="section-tagging" class="py-16 px-4 bg-stone-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl font-bold mb-4">4. The Tagging Problem & 802.1Q</h2>
+                <p class="text-stone-600">
+                    When traffic moves between switches (over a Trunk), how does the receiving switch know which VLAN the frame belongs to? 
+                    Standard Ethernet frames have no "VLAN" field. We need to <strong>Tag</strong> them.
+                </p>
+            </div>
+
+            <!-- Frame Builder Interactive -->
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+                <h3 class="font-bold text-stone-700 mb-6 text-center">Interactive Ethernet Frame Inspector</h3>
+                
+                <!-- Standard Frame -->
+                <div class="mb-2 text-xs font-bold text-stone-500 uppercase tracking-wide">Standard Ethernet Frame</div>
+                <div class="flex w-full mb-8 text-xs md:text-sm text-center font-mono border-2 border-stone-300 rounded overflow-hidden opacity-50">
+                    <div class="w-1/6 bg-gray-200 py-3 border-r border-stone-300">Dst MAC</div>
+                    <div class="w-1/6 bg-gray-200 py-3 border-r border-stone-300">Src MAC</div>
+                    <div class="w-1/6 bg-gray-200 py-3 border-r border-stone-300">Type</div>
+                    <div class="w-2/6 bg-gray-100 py-3 border-r border-stone-300">Payload (Data)</div>
+                    <div class="w-1/6 bg-gray-200 py-3">FCS</div>
+                </div>
+
+                <!-- Interaction Control -->
+                <div class="flex justify-center mb-8">
+                    <button id="btn-add-tag" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition transform hover:scale-105 flex items-center">
+                        <span class="mr-2">➕</span> Insert 802.1Q Tag
+                    </button>
+                </div>
+
+                <!-- 802.1Q Frame (Hidden initially) -->
+                <div id="tagged-frame-container" class="transition-all duration-700 overflow-hidden max-h-0">
+                    <div class="mb-2 text-xs font-bold text-purple-600 uppercase tracking-wide">802.1Q Tagged Frame</div>
+                    <div class="flex w-full text-xs md:text-sm text-center font-mono border-2 border-purple-300 rounded overflow-hidden shadow-lg">
+                        <div class="w-[15%] bg-gray-200 py-4 border-r border-stone-300 flex items-center justify-center">Dst MAC</div>
+                        <div class="w-[15%] bg-gray-200 py-4 border-r border-stone-300 flex items-center justify-center">Src MAC</div>
+                        
+                        <!-- THE TAG -->
+                        <div class="w-[20%] bg-purple-600 text-white py-2 border-r border-purple-800 flex flex-col justify-center relative group cursor-pointer">
+                            <span class="font-bold">802.1Q TAG</span>
+                            <span class="text-[10px] opacity-75">(4 Bytes)</span>
+                            
+                            <!-- Tooltip -->
+                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-stone-900 text-white text-xs p-3 rounded hidden group-hover:block z-10 text-left">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="text-gray-400">TPID:</div><div>0x8100 (ID)</div>
+                                    <div class="text-gray-400">PRI:</div><div>QoS (3 bits)</div>
+                                    <div class="text-gray-400">DEI:</div><div>Drop Indicator</div>
+                                    <div class="text-yellow-400 font-bold">VLAN ID:</div><div class="font-bold">12 bits (1-4094)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="w-[10%] bg-gray-200 py-4 border-r border-stone-300 flex items-center justify-center">Type</div>
+                        <div class="w-[30%] bg-gray-100 py-4 border-r border-stone-300 flex items-center justify-center">Payload</div>
+                        <div class="w-[10%] bg-gray-200 py-4 flex items-center justify-center">FCS</div>
+                    </div>
+                    <div class="mt-4 text-center text-sm text-stone-500">
+                        <p>The tag is inserted <strong>between</strong> Source MAC and EtherType.</p>
+                        <p class="mt-2 text-xs text-stone-400">Hover over the purple block to see the fields.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: LIVE DEMO (CLI) -->
+    <section id="section-lab" class="py-16 px-4 bg-white border-t border-stone-200">
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl font-bold mb-4">5. Quick Configuration Lab</h2>
+                <p class="text-stone-600">
+                    Configuring VLANs on Cisco IOS is surprisingly simple. Follow the steps below to configure a switch.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Steps Control -->
+                <div class="md:col-span-1 space-y-4">
+                    <button onclick="runLabStep(1)" class="w-full text-left p-4 rounded border hover:bg-stone-50 transition focus:outline-none focus:ring-2 focus:ring-orange-500 group" id="step-btn-1">
+                        <div class="text-xs font-bold text-stone-400 uppercase">Step 1</div>
+                        <div class="font-bold text-stone-800">Create the VLAN</div>
+                        <div class="text-xs text-stone-500 mt-1">Define VLAN 50 "Computers"</div>
+                    </button>
+                    <button onclick="runLabStep(2)" class="w-full text-left p-4 rounded border hover:bg-stone-50 transition focus:outline-none focus:ring-2 focus:ring-orange-500 group" id="step-btn-2">
+                        <div class="text-xs font-bold text-stone-400 uppercase">Step 2</div>
+                        <div class="font-bold text-stone-800">Assign Port</div>
+                        <div class="text-xs text-stone-500 mt-1">Put fa0/1 into VLAN 50</div>
+                    </button>
+                    <button onclick="runLabStep(3)" class="w-full text-left p-4 rounded border hover:bg-stone-50 transition focus:outline-none focus:ring-2 focus:ring-orange-500 group" id="step-btn-3">
+                        <div class="text-xs font-bold text-stone-400 uppercase">Step 3</div>
+                        <div class="font-bold text-stone-800">Configure Trunk</div>
+                        <div class="text-xs text-stone-500 mt-1">Set fa0/14 as 802.1Q trunk</div>
+                    </button>
+                     <button onclick="runLabStep(4)" class="w-full text-left p-4 rounded border hover:bg-stone-50 transition focus:outline-none focus:ring-2 focus:ring-orange-500 group" id="step-btn-4">
+                        <div class="text-xs font-bold text-stone-400 uppercase">Step 4</div>
+                        <div class="font-bold text-stone-800">Verify</div>
+                        <div class="text-xs text-stone-500 mt-1">Check configurations</div>
+                    </button>
+                </div>
+
+                <!-- Terminal Emulator -->
+                <div class="md:col-span-2 bg-stone-900 rounded-lg shadow-2xl p-4 font-mono text-sm overflow-hidden flex flex-col h-96">
+                    <div class="flex items-center gap-2 mb-4 border-b border-stone-800 pb-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <div class="text-stone-500 text-xs ml-2">Switch-1 - PuTTY</div>
+                    </div>
+                    <div id="terminal-content" class="text-green-400 flex-grow overflow-y-auto whitespace-pre-wrap pb-4">
+SW1> enable
+SW1# configure terminal
+Enter configuration commands, one per line. End with CNTL/Z.
+<span class="term-cursor"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer / Recap -->
+    <footer class="bg-stone-100 py-12 px-4 border-t border-stone-200">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-2xl font-bold mb-8">Summary Checklist</h2>
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-white p-4 rounded shadow-sm">
+                    <div class="text-3xl mb-2">🧱</div>
+                    <h3 class="font-bold text-sm">Segmentation</h3>
+                    <p class="text-xs text-stone-500 mt-1">Isolates broadcast domains and failures.</p>
+                </div>
+                <div class="bg-white p-4 rounded shadow-sm">
+                    <div class="text-3xl mb-2">🏷️</div>
+                    <h3 class="font-bold text-sm">802.1Q Tagging</h3>
+                    <p class="text-xs text-stone-500 mt-1">IDs traffic on trunks (12-bit VID).</p>
+                </div>
+                <div class="bg-white p-4 rounded shadow-sm">
+                    <div class="text-3xl mb-2">🔒</div>
+                    <h3 class="font-bold text-sm">Security</h3>
+                    <p class="text-xs text-stone-500 mt-1">Compliance & Attack Surface Reduction.</p>
+                </div>
+            </div>
+
+            <div class="bg-stone-800 text-stone-300 p-8 rounded-xl max-w-2xl mx-auto">
+                <h3 class="text-white font-bold text-lg mb-2">🤔 Exit Question</h3>
+                <p class="italic mb-4">"If VLANs isolate networks at Layer 2, what do we need to allow Computer A in VLAN 10 to communicate with Computer B in VLAN 20?"</p>
+                <div id="answer-reveal" class="hidden text-orange-400 font-bold animate-fade-in">
+                    Answer: A Layer 3 Device (Router or L3 Switch) to perform Inter-VLAN Routing.
+                </div>
+                <button onclick="document.getElementById('answer-reveal').classList.remove('hidden')" class="border border-stone-600 hover:bg-stone-700 text-xs px-4 py-2 rounded transition">Reveal Answer</button>
+            </div>
+            
+            <p class="text-stone-400 text-xs mt-12">© Cyber.SoHo | 2026 Cybersecurity AEC Program • VLAN Demonstration</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA & STATE ---
+        const state = {
+            vlanEnabled: false,
+            labStep: 0
+        };
+
+        // --- SECTION 1: FLAT NETWORK SIMULATION ---
+        const gridContainer = document.getElementById('network-grid');
+        const statusDisplay = document.getElementById('simulation-status');
+        
+        // Generate nodes
+        const depts = ['Sales', 'HR', 'Eng', 'R&D'];
+        let nodesHTML = '';
+        for(let i=0; i<16; i++) {
+            const dept = depts[Math.floor(i/4)];
+            const colorClass = dept === 'Sales' ? 'text-orange-600' : 
+                               dept === 'HR' ? 'text-blue-600' : 
+                               dept === 'Eng' ? 'text-green-600' : 'text-purple-600';
+            
+            nodesHTML += `
+                <div class="node-pc flex flex-col items-center justify-center p-2 bg-stone-100 rounded border border-stone-200" id="node-${i}" data-dept="${dept}">
+                    <div class="text-2xl mb-1 ${colorClass}">🖥️</div>
+                    <div class="text-[10px] font-mono text-stone-500">${dept}-${i+1}</div>
+                </div>
+            `;
+        }
+        gridContainer.innerHTML = nodesHTML;
+
+        // Broadcast Logic
+        document.getElementById('btn-broadcast').addEventListener('click', () => {
+            statusDisplay.textContent = "BROADCAST DETECTED: Flooding all ports...";
+            statusDisplay.className = "text-sm text-center text-red-600 font-bold h-6 highlight-pulse";
+            
+            const nodes = document.querySelectorAll('.node-pc');
+            nodes.forEach((node, index) => {
+                setTimeout(() => {
+                    node.classList.add('bg-red-200', 'border-red-500');
+                    // Reset after animation
+                    setTimeout(() => {
+                        node.classList.remove('bg-red-200', 'border-red-500');
+                    }, 800);
+                }, index * 50); // Staggered ripple effect
+            });
+
+            setTimeout(() => {
+                statusDisplay.textContent = "Result: Bandwidth saturated. All nodes processed interrupt.";
+                statusDisplay.className = "text-sm text-center text-stone-500 italic h-6";
+            }, 2000);
+        });
+
+        // Failure Logic
+        document.getElementById('btn-failure').addEventListener('click', () => {
+            statusDisplay.textContent = "CRITICAL: Switch 2 Failure";
+            statusDisplay.className = "text-sm text-center text-stone-800 font-bold h-6";
+            
+            const nodes = document.querySelectorAll('.node-pc');
+            // Fail the middle 8 nodes
+            for(let i=4; i<12; i++) {
+                const node = document.getElementById(`node-${i}`);
+                node.style.opacity = '0.2';
+            }
+            
+            setTimeout(() => {
+                // Reset
+                nodes.forEach(n => n.style.opacity = '1');
+                statusDisplay.textContent = "System Restored.";
+                statusDisplay.className = "text-sm text-center text-stone-500 italic h-6";
+            }, 3000);
+        });
+
+
+        // --- SECTION 2: CHART.JS VISUALIZATION ---
+        const ctx = document.getElementById('vlanChart').getContext('2d');
+        
+        const chartDataFlat = {
+            labels: ['Broadcast Domain 1'],
+            datasets: [{
+                data: [100],
+                backgroundColor: ['#A8A29E'], // Stone-400
+                borderWidth: 0
+            }]
+        };
+
+        const chartDataVLAN = {
+            labels: ['Research (VLAN 10)', 'Engineering (VLAN 20)', 'Sales (VLAN 30)'],
+            datasets: [{
+                data: [33, 33, 34],
+                backgroundColor: ['#3B82F6', '#22C55E', '#F97316'], // Blue, Green, Orange
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        };
+
+        const vlanChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: chartDataFlat,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': Isolated';
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        });
+
+        document.getElementById('toggle-vlan-view').addEventListener('click', function() {
+            state.vlanEnabled = !state.vlanEnabled;
+            const btn = this;
+            
+            if(state.vlanEnabled) {
+                vlanChart.data = chartDataVLAN;
+                btn.textContent = "Revert to Flat Network";
+                btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                btn.classList.add('bg-stone-600', 'hover:bg-stone-700');
+            } else {
+                vlanChart.data = chartDataFlat;
+                btn.textContent = "Apply VLAN Segmentation";
+                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                btn.classList.remove('bg-stone-600', 'hover:bg-stone-700');
+            }
+            vlanChart.update();
+        });
+
+
+        // --- SECTION 4: TAGGING INTERACTION ---
+        document.getElementById('btn-add-tag').addEventListener('click', function() {
+            const container = document.getElementById('tagged-frame-container');
+            if (container.style.maxHeight === '500px') {
+                container.style.maxHeight = '0px';
+                this.innerHTML = '<span class="mr-2">➕</span> Insert 802.1Q Tag';
+            } else {
+                container.style.maxHeight = '500px';
+                this.innerHTML = '<span class="mr-2">➖</span> Remove Tag';
+            }
+        });
+
+
+        // --- SECTION 5: LAB SIMULATION ---
+        const terminal = document.getElementById('terminal-content');
+        const commands = {
+            1: [
+                "SW1(config)# vlan 50",
+                "SW1(config-vlan)# name Computers",
+                "SW1(config-vlan)# exit",
+                "%VLAN-50 created successfully."
+            ],
+            2: [
+                "SW1(config)# interface fa0/1",
+                "SW1(config-if)# switchport mode access",
+                "SW1(config-if)# switchport access vlan 50",
+                "%Interface fa0/1 assigned to VLAN 50."
+            ],
+            3: [
+                "SW1(config)# interface fa0/14",
+                "SW1(config-if)# switchport trunk encapsulation dot1q",
+                "SW1(config-if)# switchport mode trunk",
+                "%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/14, changed state to up"
+            ],
+            4: [
+                "SW1# show vlan brief",
+                "50   Computers                        active    Fa0/1",
+                "SW1# show interface trunk",
+                "Port        Mode             Encapsulation  Status        Native vlan",
+                "Fa0/14      on               802.1q         trunking      1"
+            ]
+        };
+
+        function typeWriter(text, i, fnCallback) {
+            if (i < text.length) {
+                terminal.innerHTML = terminal.innerHTML.replace('<span class="term-cursor"></span>', '') + text.charAt(i) + '<span class="term-cursor"></span>';
+                terminal.scrollTop = terminal.scrollHeight;
+                setTimeout(function() {
+                    typeWriter(text, i + 1, fnCallback)
+                }, 15); // Typing speed
+            } else if (typeof fnCallback == 'function') {
+                fnCallback();
+            }
+        }
+
+        function runLabStep(step) {
+            // Reset highlighting
+            document.querySelectorAll('[id^="step-btn-"]').forEach(b => b.classList.remove('ring-2', 'ring-orange-500', 'bg-stone-50'));
+            document.getElementById(`step-btn-${step}`).classList.add('ring-2', 'ring-orange-500', 'bg-stone-50');
+
+            // Add new line before typing
+            terminal.innerHTML = terminal.innerHTML.replace('<span class="term-cursor"></span>', '') + "\n";
+            
+            const lines = commands[step];
+            let lineIndex = 0;
+
+            function processNextLine() {
+                if(lineIndex < lines.length) {
+                    const line = lines[lineIndex];
+                    if(lineIndex === 0) {
+                        // First line is the command input
+                        typeWriter(line, 0, () => {
+                             terminal.innerHTML = terminal.innerHTML.replace('<span class="term-cursor"></span>', '') + '\n<span class="term-cursor"></span>';
+                             lineIndex++;
+                             setTimeout(processNextLine, 300);
+                        });
+                    } else {
+                        // Subsequent lines are output (appear instantly)
+                        terminal.innerHTML = terminal.innerHTML.replace('<span class="term-cursor"></span>', '') + line + '\n<span class="term-cursor"></span>';
+                        terminal.scrollTop = terminal.scrollHeight;
+                        lineIndex++;
+                        setTimeout(processNextLine, 100);
+                    }
+                }
+            }
+            processNextLine();
+        }
+        
+        // Mobile Menu Toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+
+    </script>
+</body>
+</html>
+
+
+
